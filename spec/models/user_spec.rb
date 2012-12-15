@@ -13,8 +13,8 @@ require 'spec_helper'
 
 describe User do
 before do
-  @user = User.new(name: "Example User", email: "user@example.com",
-   password: "foobar", password_confirmation: "foobar")
+  @user = User.new(name: "Example User", email: "user@example.com", password: "foobar", password_confirmation: "foobar")
+
 end
 
   subject { @user }
@@ -23,16 +23,48 @@ end
   it { should respond_to(:password_digest) }
   it { should respond_to(:password)}
   it { should respond_to(:password_confirmation)}
-
-
   it { should be_valid }
 
+  it { should respond_to(:password_digest) }
+  it { should respond_to(:authenticate) }
+
+   describe "return value of authenticate method" do
+    before { @user.save }
+    let(:found_user) {User.find_by_email(@user.email)}  
+
+    
+    describe "with valid password" do
+      it {should == found_user.authenticate(@user.password)}
+    end
+    
+
+describe "with invalid password" do
+      it {should_mot == found_user.authenticate("ddsf")}
+    end
+
+    end
 
   describe "when password is not present" do
     before { @user.password = @user.password_confirmation = " " }
     it { should_not be_valid }
   end
 
+  describe "when password too short" do
+    before { @user.password = @user.password_confirmation = "12345" }
+    it { should_not be_valid }
+  end
+
+  describe "when password mismatch" do
+    before {@user.password_confirmation="x"}
+    it {should_not be_valid}
+
+  end
+  
+  describe "when password nil" do
+    before {@user.password_confirmation=nil}
+    it {should_not be_valid}
+
+  end
 
 
   describe "when name is not present" do
@@ -59,6 +91,12 @@ end
 
     it { should_not be_valid }
   end
+
+  describe "when name is too loong" do
+    before { @user.name = "a"*51 }
+    it { should_not be_valid }
+  end
+
 
     describe "when email format is invalid" do
     it "should be invalid" do
